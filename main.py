@@ -27,29 +27,42 @@ def get_state_details(answer: str) -> Optional[Tuple[str, int, int]]:
     y = us_state.iloc[0].y
     return name, x, y
 
-def fill_map(name: str, x: int, y: int, state_turtle: turtle.Turtle):
+def fill_map(name: str, x: int, y: int):
     """Fill state name on map"""
+    state_turtle = turtle.Turtle()
+    state_turtle.hideturtle()
+    state_turtle.penup()
     state_turtle.setpos(x, y)
     state_turtle.write(name)
+
+def missed_states_csv(all_states: list, guessed_states: list):
+    """Create csv with missing states after game over"""
+    missing_states = []
+    for state in all_states:
+        if state not in guessed_states:
+            missing_states.append(state)
+
+    missed_data = pandas.DataFrame(missing_states)
+    missed_data.to_csv("./missed.csv", index = False)
 
 def game_logic():
     """Game logic"""
     correct_guesses = 0
+    all_states = US_STATES.state.to_list()
     guessed_states = []
 
     while correct_guesses <= 50:
         answer_state = screen.textinput(title=f"{correct_guesses}/50 States Correct", prompt="What's another state name").title()
+        if answer_state == "Exit":
+            break
         if get_state_details(answer_state) is None:
             continue
-
-        state_turtle = turtle.Turtle()
-        state_turtle.hideturtle()
-        state_turtle.penup()
         name, x, y = get_state_details(answer_state)
-        fill_map(name, x, y, state_turtle)
-        guessed_states.append(name)
+        fill_map(name, x, y)
         correct_guesses += 1
+        guessed_states.append(name)
 
+    missed_states_csv(all_states, guessed_states)
 
 game_logic()
 screen.mainloop()
